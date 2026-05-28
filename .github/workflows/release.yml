@@ -27,12 +27,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install "python-semantic-release>=9,<10" build
       - name: Python semantic release
+        id: release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          semantic-release version
-          semantic-release publish
+        run: semantic-release version
+      - name: Build package distributions
+        if: steps.release.outputs.released == 'true'
+        run: python -m build
+      - name: Publish release assets
+        if: steps.release.outputs.released == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: semantic-release publish
       - name: Publish to PyPI (Trusted Publishing)
+        if: steps.release.outputs.released == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
