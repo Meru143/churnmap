@@ -50,6 +50,7 @@ Changelog = "https://github.com/Meru143/churnmap/blob/main/CHANGELOG.md"
 [project.scripts]
 churnmap = "churnmap.main:app"
 
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
