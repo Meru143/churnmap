@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ChurnMap — {{ repo_name }}</title>
+  <!-- D3.js loaded from CDN. Report requires internet to render visualizations. -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f8fafc;
+      --panel: #ffffff;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #dbe3ef;
+      --accent: #0f766e;
+      --high: #ef4444;
+      --medium: #f59e0b;
+      --low: #22c55e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+    header, main, footer {
+      width: min(1280px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+    header { padding: 28px 0 16px; }
+    h1 { margin: 0 0 14px; font-size: 30px; font-weight: 750; letter-spacing: 0; }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      gap: 8px;
+    }
+    .metric {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .metric span { display: block; color: var(--muted); font-size: 12px; }
+    .metric strong { display: block; margin-top: 2px; font-size: 18px; }
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .tab-button {
+      appearance: none;
+      border: 0;
+      border-bottom: 3px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      padding: 10px 14px 9px;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 650;
+    }
+    .tab-button.active {
+      border-bottom-color: var(--accent);
+      color: var(--ink);
+    }
+    .tab-panel {
+      display: none;
+      min-height: 620px;
+      padding: 18px 0 28px;
+    }
+    .tab-panel.active { display: block; }
+    .viz-frame {
+      overflow: auto;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    #heatmap-svg { min-width: 760px; min-height: 620px; }
+    #force-svg { width: 100%; height: 600px; display: block; }
+    .axis-label { fill: #334155; font-size: 12px; }
+    .cell { stroke: #ffffff; stroke-width: 1px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: #eef2f7; color: #334155; font-size: 12px; text-transform: uppercase; }
+    tr:last-child td { border-bottom: 0; }
+    tr.risk-high td { background: #fef2f2; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace; }
+    footer {
+      padding: 20px 0 34px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    @media (max-width: 760px) {
+      header, main, footer { width: min(100% - 20px, 1280px); }
+      .summary { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+      h1 { font-size: 24px; }
+      .tabs { overflow-x: auto; }
+      .tab-button { flex: 0 0 auto; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ChurnMap — {{ repo_name }}</h1>
+    <div class="summary">
+      <div class="metric"><span>Total pairs</span><strong>{{ total_pairs }}</strong></div>
+      <div class="metric"><span>Max score</span><strong>{{ "%.2f"|format(max_score) }}</strong></div>
+      <div class="metric"><span>Files analyzed</span><strong>{{ total_files }}</strong></div>
+      <div class="metric"><span>Commits</span><strong>{{ total_commits_analyzed }}</strong></div>
+      <div class="metric"><span>Lookback</span><strong>{{ lookback_days }} days</strong></div>
+    </div>
+  </header>
+  <main>
+    <nav class="tabs" aria-label="Report views">
+      <button class="tab-button active" data-tab="heatmap" onclick="showTab('heatmap')">Heatmap</button>
+      <button class="tab-button" data-tab="force" onclick="showTab('force')">Force Graph</button>
+      <button class="tab-button" data-tab="table" onclick="showTab('table')">Table</button>
+    </nav>
+
+    <section id="tab-heatmap" class="tab-panel active">
+      <div class="viz-frame">
+        <svg id="heatmap-svg" role="img" aria-label="Coupling heatmap"></svg>
+      </div>
+    </section>
+
+    <section id="tab-force" class="tab-panel">
+      <div class="viz-frame">
+        <svg id="force-svg" role="img" aria-label="Coupling force graph"></svg>
+      </div>
+    </section>
+
+    <section id="tab-table" class="tab-panel">
+      <table>
+        <thead>
+          <tr>
+            <th>File A</th>
+            <th>File B</th>
+            <th>Score</th>
+            <th>Risk</th>
+            <th>Co-changes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pair in table_pairs %}
+          <tr class="{% if pair.risk == 'high' %}risk-high{% endif %}">
+            <td class="mono">{{ pair.file_a }}</td>
+            <td class="mono">{{ pair.file_b }}</td>
+            <td>{{ "%.2f"|format(pair.score) }}</td>
+            <td>
+              {% if pair.risk == "high" %}🔴 High{% elif pair.risk == "medium" %}🟡 Medium{% else %}🟢 Low{% endif %}
+            </td>
+            <td>{{ pair.co_changes }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </main>
+  <footer>Generated by churnmap v{{ churnmap_version }} on {{ generated_at }}</footer>
+
+  <script>
+    const heatmapFiles = {{ heatmap_files_json }};
+    const heatmapMatrix = {{ heatmap_matrix_json }};
+    const nodes = {{ force_nodes_json }};
+    const links = {{ force_links_json }};
+    const tablePairs = {{ table_pairs_json }};
+
+    function showTab(name) {
+      document.querySelectorAll(".tab-button").forEach((button) => {
+        button.classList.toggle("active", button.dataset.tab === name);
+      });
+      document.querySelectorAll(".tab-panel").forEach((panel) => {
+        panel.classList.toggle("active", panel.id === `tab-${name}`);
+      });
+    }
+
+    function truncateLabel(value) {
+      return value.length > 20 ? `${value.slice(0, 17)}...` : value;
+    }
+
+    function renderHeatmap() {
+      const cellSize = 26;
+      const margin = { top: 160, right: 24, bottom: 24, left: 220 };
+      const width = Math.max(760, margin.left + margin.right + heatmapFiles.length * cellSize);
+      const height = Math.max(620, margin.top + margin.bottom + heatmapFiles.length * cellSize);
+      const svg = d3.select("#heatmap-svg").attr("width", width).attr("height", height);
+      const x = d3.scaleBand().domain(heatmapFiles).range([margin.left, width - margin.right]);
+      const y = d3.scaleBand().domain(heatmapFiles).range([margin.top, height - margin.bottom]);
+      const color = d3.scaleSequential(d3.interpolateRdYlGn).domain([1, 0]);
+      const flatCells = [];
+      heatmapFiles.forEach((fileA, row) => {
+        heatmapFiles.forEach((fileB, col) => {
+          flatCells.push({ fileA, fileB, row, col, score: heatmapMatrix[row][col] || 0 });
+        });
+      });
+
+      svg.selectAll("rect.cell").data(flatCells).join("rect")
+        .attr("class", "cell")
+        .attr("x", (d) => x(d.fileB))
+        .attr("y", (d) => y(d.fileA))
+        .attr("width", x.bandwidth())
+        .attr("height", y.bandwidth())
+        .attr("fill", (d) => d.score === 0 ? "#ffffff" : color(d.score))
+        .append("title")
+        .text((d) => `${d.fileA} ↔ ${d.fileB}: score=${d.score.toFixed(2)} (${coChangesFor(d.fileA, d.fileB)} co-changes)`);
+
+      svg.selectAll("text.x-label").data(heatmapFiles).join("text")
+        .attr("class", "axis-label x-label")
+        .attr("transform", (d) => `translate(${(x(d) || 0) + x.bandwidth() / 2}, ${margin.top - 8}) rotate(-45)`)
+        .attr("text-anchor", "start")
+        .text(truncateLabel);
+
+      svg.selectAll("text.y-label").data(heatmapFiles).join("text")
+        .attr("class", "axis-label y-label")
+        .attr("x", margin.left - 8)
+        .attr("y", (d) => (y(d) || 0) + y.bandwidth() / 2 + 4)
+        .attr("text-anchor", "end")
+        .text(truncateLabel);
+    }
+
+    function coChangesFor(fileA, fileB) {
+      const pair = tablePairs.find((item) =>
+        (item.file_a === fileA && item.file_b === fileB) ||
+        (item.file_a === fileB && item.file_b === fileA)
+      );
+      return pair ? pair.co_changes : 0;
+    }
+
+    function renderForceGraph() {
+      const svgNode = document.getElementById("force-svg");
+      const width = svgNode.clientWidth || 1000;
+      const height = 600;
+      const svg = d3.select(svgNode).attr("viewBox", [0, 0, width, height]);
+      const churnValues = nodes.map((node) => node.churn);
+      const minChurn = d3.min(churnValues) || 1;
+      const maxChurn = d3.max(churnValues) || 1;
+      const rScale = d3.scaleLinear().domain([minChurn, maxChurn]).range([5, 25]);
+
+      const link = svg.selectAll("line").data(links).join("line")
+        .attr("stroke", (d) => d.score > 0.7 ? "#ef4444" : "#94a3b8")
+        .attr("stroke-width", (d) => Math.max(0.5, Math.min(8, d.score * 8)))
+        .attr("stroke-opacity", 0.82);
+      link.append("title").text((d) => `${linkName(d.source)} ↔ ${linkName(d.target)}: ${d.score.toFixed(2)}`);
+
+      const node = svg.selectAll("circle").data(nodes).join("circle")
+        .attr("r", (d) => minChurn === maxChurn ? 12 : rScale(d.churn))
+        .attr("fill", (d) => d.risk === "high" ? "#ef4444" : d.risk === "medium" ? "#f59e0b" : "#22c55e")
+        .attr("stroke", "#0f172a")
+        .attr("stroke-width", 1)
+        .call(dragBehavior());
+      node.append("title").text((d) => `${d.id} — churn: ${d.churn}, max coupling: ${d.max_score.toFixed(2)}`);
+
+      const label = svg.selectAll("text.node-label").data(nodes).join("text")
+        .attr("class", "axis-label node-label")
+        .attr("dx", 10)
+        .attr("dy", 4)
+        .text((d) => truncateLabel(d.id));
+
+      const simulation = d3.forceSimulation(nodes)
+        .force("link", d3.forceLink(links).id((d) => d.id).distance(100))
+        .force("charge", d3.forceManyBody().strength(-200))
+        .force("center", d3.forceCenter(width / 2, height / 2));
+
+      simulation.on("tick", () => {
+        link
+          .attr("x1", (d) => d.source.x)
+          .attr("y1", (d) => d.source.y)
+          .attr("x2", (d) => d.target.x)
+          .attr("y2", (d) => d.target.y);
+        node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+        label.attr("x", (d) => d.x).attr("y", (d) => d.y);
+      });
+
+      function dragBehavior() {
+        return d3.drag()
+          .on("start", (event, d) => {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+          })
+          .on("drag", (event, d) => {
+            d.fx = event.x;
+            d.fy = event.y;
+          })
+          .on("end", (event, d) => {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+          });
+      }
+    }
+
+    function linkName(value) {
+      return typeof value === "string" ? value : value.id;
+    }
+
+    renderHeatmap();
+    renderForceGraph();
+  </script>
+</body>
+</html>

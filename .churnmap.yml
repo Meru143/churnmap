@@ -1,0 +1,15 @@
+# churnmap dogfooding config — analyzes churnmap's own repo.
+# All values match the package defaults; included to demonstrate the file format.
+
+lookback_days: 90
+min_occurrences: 3
+heatmap_limit: 50
+top_files: 100
+format: both
+low_threshold: 0.3
+high_threshold: 0.7
+open: false
+exclude:
+  - "docs/**"
+  - "*.md"
+  - "tests/**"
