@@ -146,8 +146,6 @@ CLI flags override config file values.
 - [README GIF](docs/assets/churnmap-demo.gif)
 - [Interactive sample report](docs/demo/sample-report.html)
 - [Sample JSON report](docs/demo/sample-report.json)
-- [HyperFrames source](docs/frames/churnmap-demo/index.html)
-- [Positioning kit](docs/marketing.md)
 
 Regenerate the sample report:
 

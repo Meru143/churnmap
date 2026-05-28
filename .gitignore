@@ -27,3 +27,12 @@ skills-lock.json
 Thumbs.db
 2026-05-27-churnmap-todo.md
 2026-05-27-churnmap-prd.md
+
+# Internal positioning and design source
+docs/marketing.md
+docs/frames/
+docs/**/design.md
+docs/internal/
+docs/design/
+marketing/
+design/
