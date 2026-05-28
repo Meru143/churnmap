@@ -48,7 +48,7 @@ dev = [
     "ruff>=0.11",
     "mypy>=1.15",
     "build>=1.2",
-    "pip-audit>=2.7",
+    "pip-audit>=2.10.0",
     "python-semantic-release>=9,<10",
 ]
 
