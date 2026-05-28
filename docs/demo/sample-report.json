@@ -1,0 +1,107 @@
+{
+  "meta": {
+    "repo": "example/payments-service",
+    "generated_at": "2026-05-28",
+    "lookback_days": 90,
+    "total_commits_analyzed": 168,
+    "churnmap_version": "1.0.0"
+  },
+  "pairs": [
+    {
+      "file_a": "src/checkout.py",
+      "file_b": "src/invoice.py",
+      "score": 0.91,
+      "co_changes": 38,
+      "total_commits": 42,
+      "risk": "high"
+    },
+    {
+      "file_a": "src/payment.py",
+      "file_b": "src/refunds.py",
+      "score": 0.84,
+      "co_changes": 29,
+      "total_commits": 35,
+      "risk": "high"
+    },
+    {
+      "file_a": "src/checkout.py",
+      "file_b": "src/cart.py",
+      "score": 0.76,
+      "co_changes": 25,
+      "total_commits": 33,
+      "risk": "high"
+    },
+    {
+      "file_a": "src/invoice.py",
+      "file_b": "src/tax.py",
+      "score": 0.68,
+      "co_changes": 19,
+      "total_commits": 28,
+      "risk": "medium"
+    },
+    {
+      "file_a": "src/cart.py",
+      "file_b": "src/promotions.py",
+      "score": 0.63,
+      "co_changes": 17,
+      "total_commits": 27,
+      "risk": "medium"
+    },
+    {
+      "file_a": "src/payment.py",
+      "file_b": "src/gateway.py",
+      "score": 0.57,
+      "co_changes": 14,
+      "total_commits": 25,
+      "risk": "medium"
+    },
+    {
+      "file_a": "src/reporting.py",
+      "file_b": "src/export.py",
+      "score": 0.46,
+      "co_changes": 10,
+      "total_commits": 22,
+      "risk": "medium"
+    },
+    {
+      "file_a": "src/auth.py",
+      "file_b": "src/session.py",
+      "score": 0.41,
+      "co_changes": 9,
+      "total_commits": 22,
+      "risk": "medium"
+    },
+    {
+      "file_a": "src/notifications.py",
+      "file_b": "src/templates.py",
+      "score": 0.33,
+      "co_changes": 7,
+      "total_commits": 21,
+      "risk": "medium"
+    },
+    {
+      "file_a": "src/search.py",
+      "file_b": "src/indexer.py",
+      "score": 0.29,
+      "co_changes": 6,
+      "total_commits": 21,
+      "risk": "low"
+    },
+    {
+      "file_a": "src/api.py",
+      "file_b": "src/openapi.py",
+      "score": 0.24,
+      "co_changes": 5,
+      "total_commits": 21,
+      "risk": "low"
+    },
+    {
+      "file_a": "src/admin.py",
+      "file_b": "src/audit.py",
+      "score": 0.18,
+      "co_changes": 4,
+      "total_commits": 22,
+      "risk": "low"
+    }
+  ]
+}

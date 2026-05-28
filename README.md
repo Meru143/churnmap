@@ -4,11 +4,13 @@
 
 # churnmap
 
-> Coupling heatmap generator — visualize co-change risk in any git repo.
+> Run the coupling map before the rewrite.
 
-churnmap is a dead-simple CLI that analyzes any git repository's co-change history and generates a two-tab interactive HTML report — a coupling heatmap and a D3 force graph — plus a machine-readable JSON file. It is the open-source CodeScene replacement for local, ad-hoc coupling audits.
+churnmap is a local CLI that analyzes git co-change history and generates an interactive D3 report plus a machine-readable JSON file. Use it before refactors, migrations, ownership reviews, and architecture audits to find files that keep changing together.
 
-One command, two files. No signup, no external service, no Kubernetes.
+![churnmap product demo](docs/assets/churnmap-demo.gif)
+
+One command, two durable artifacts. No signup, token, repository upload, hosted dashboard, or Kubernetes.
 
 ## Install
 
@@ -22,16 +24,16 @@ Or with [uv](https://github.com/astral-sh/uv):
 uv tool install churnmap
 ```
 
-## Usage
+## Quick Start
 
 ```bash
-# Analyze the current directory
+# Analyze the current repository
 churnmap
 
-# Analyze a specific repo with custom settings
+# Tune the analysis and open the report
 churnmap \
   --repo /path/to/repo \
-  --output-dir ./my-report \
+  --output-dir ./coupling-report \
   --lookback-days 180 \
   --min-occurrences 5 \
   --heatmap-limit 30 \
@@ -39,13 +41,30 @@ churnmap \
   --open
 ```
 
-Output is written to `./coupling-report/`:
+churnmap writes:
 
-```
+```text
 coupling-report/
-├── index.html    # Two-tab interactive report (Heatmap + Force Graph + Table)
-└── report.json   # Machine-readable JSON with meta + pairs envelope
+├── index.html     # Interactive Heatmap, Force Graph, and Table views
+└── report.json    # Machine-readable meta + pairs envelope
 ```
+
+## What You Get
+
+![churnmap report preview](docs/assets/report-preview.png)
+
+- **Heatmap**: top files by maximum coupling score, with hotter cells showing stronger co-change relationships.
+- **Force Graph**: file relationships where node size follows churn, node color follows risk, and edge thickness follows score.
+- **Table**: the highest-risk pairs sorted by coupling score for quick review.
+- **JSON**: the same signal in a script-friendly envelope for automation and dashboards.
+
+## When To Use It
+
+- Before splitting a module, package, service, or bounded context.
+- Before a rewrite, migration, or large dependency upgrade.
+- During architecture reviews where code ownership is unclear.
+- When onboarding engineers need to see the real change paths, not just the folder tree.
+- When you want CodeScene-style coupling signal without sending code or git history to a service.
 
 ## Flags
 
@@ -55,21 +74,16 @@ coupling-report/
 | `--output-dir` | `Path` | `./coupling-report` | Output directory for report files |
 | `--lookback-days` | `int` | `90` | Days of git history to analyze |
 | `--min-occurrences` | `int` | `3` | Minimum co-change count to include a pair |
-| `--heatmap-limit` | `int` | `50` | Max files in heatmap (top by max coupling score) |
-| `--top-files` | `int` | `100` | Max pairs in HTML table |
-| `--format` | `str` | `both` | Output format: `both`, `html`, `json` |
-| `--exclude` | `list[str]` | `[]` | Glob patterns to exclude (repeatable) |
-| `--low-threshold` | `float` | `0.3` | Score below this is 🟢 Low |
-| `--high-threshold` | `float` | `0.7` | Score above this is 🔴 High |
-| `--open` | `bool` | `False` | Open HTML report in browser after generation |
-| `--version` | flag | — | Print version and exit |
+| `--heatmap-limit` | `int` | `50` | Max files in heatmap, ranked by max coupling score |
+| `--top-files` | `int` | `100` | Max pairs shown in the HTML table |
+| `--format` | `str` | `both` | Output format: `both`, `html`, or `json` |
+| `--exclude` | `list[str]` | `[]` | Glob patterns to exclude; repeatable |
+| `--low-threshold` | `float` | `0.3` | Score below this is low risk |
+| `--high-threshold` | `float` | `0.7` | Score at or above this is high risk |
+| `--open` | `bool` | `False` | Open HTML report in the browser after generation |
+| `--version` | flag | - | Print version and exit |
 
-## Output
-
-- **`index.html`** — self-contained, three-tab D3-powered report. Heatmap tab shows top-N files by max coupling score with color-coded cells. Force Graph tab shows file relationships with node size = churn and edge thickness = coupling score. Table tab lists top pairs.
-- **`report.json`** — envelope with `meta` (repo name, generation date, lookback days, total commits analyzed, churnmap version) and `pairs` (all coupling pairs above `min_occurrences`, sorted by score descending).
-
-## Config file
+## Config File
 
 Drop a `.churnmap.yml` in your repo root to set defaults:
 
@@ -90,36 +104,56 @@ exclude:
 
 CLI flags override config file values.
 
-## How it works
+## JSON Shape
 
-1. **`coupling-core`** parses the git history, builds a co-change matrix, normalizes scores into the 0–1 range, and returns a `RepoAnalysis`.
-2. **`DataPreparer`** turns the analysis into a heatmap matrix, force-graph nodes/links, and a table-pairs list.
-3. **`HtmlRenderer`** renders a Jinja2 template containing embedded JSON data and D3.js (loaded from CDN).
-4. **`JsonWriter`** emits the machine-readable envelope.
-5. **`OutputWriter`** creates the output directory and writes both files.
-
-## Report screenshot
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│  ChurnMap — Meru143/churnmap                                  │
-│  Total pairs: 42  •  Max score: 0.91  •  Commits: 342         │
-│                                                                │
-│  [ Heatmap ]  [ Force Graph ]  [ Table ]                       │
-│  ─────────                                                     │
-│                                                                │
-│       src/  src/  src/  ...                                    │
-│       a.py  b.py  c.py                                         │
-│  a.py  ▓▓   ░░    ▒▒                                           │
-│  b.py  ░░   ▓▓    ▓▓                                           │
-│  c.py  ▒▒   ▓▓    ▓▓                                           │
-│                                                                │
-└──────────────────────────────────────────────────────────────┘
+```json
+{
+  "meta": {
+    "repo": "example/payments-service",
+    "generated_at": "2026-05-28",
+    "lookback_days": 90,
+    "total_commits_analyzed": 168,
+    "churnmap_version": "1.0.0"
+  },
+  "pairs": [
+    {
+      "file_a": "src/checkout.py",
+      "file_b": "src/invoice.py",
+      "score": 0.91,
+      "co_changes": 38,
+      "total_commits": 42,
+      "risk": "high"
+    }
+  ]
+}
 ```
 
-## Used alongside
+## Demo Kit
 
-- [couplingguard](https://github.com/Meru143/couplingguard) — PR-time coupling warning as a GitHub Action. Same `coupling-core` engine, complementary surface.
+- [Product demo MP4](docs/assets/churnmap-demo.mp4)
+- [README GIF](docs/assets/churnmap-demo.gif)
+- [Interactive sample report](docs/demo/sample-report.html)
+- [Sample JSON report](docs/demo/sample-report.json)
+- [HyperFrames source](docs/frames/churnmap-demo/index.html)
+- [Positioning kit](docs/marketing.md)
+
+Regenerate the sample report:
+
+```bash
+PYTHONPATH=src python docs/demo/generate_sample_report.py
+```
+
+## How It Works
+
+1. `coupling-core` parses git history, builds a co-change matrix, normalizes scores, and returns a `RepoAnalysis`.
+2. `DataPreparer` turns the analysis into heatmap data, force-graph nodes and links, and sorted table pairs.
+3. `HtmlRenderer` renders a Jinja2 template with embedded JSON data and D3 loaded from CDN.
+4. `JsonWriter` emits the machine-readable report envelope.
+5. `OutputWriter` writes the selected artifacts and optionally opens the HTML report.
+
+## Used Alongside
+
+- [couplingguard](https://github.com/Meru143/couplingguard) - PR-time coupling warnings as a GitHub Action. Same `coupling-core` engine, complementary surface.
 
 ## License
 

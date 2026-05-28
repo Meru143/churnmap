@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #f6f7f2;
+        color: #111318;
+        font-family: sans-serif;
+      }
+
+      #root {
+        position: relative;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 14% 16%, rgba(15, 118, 110, 0.18), rgba(15, 118, 110, 0) 28%),
+          radial-gradient(circle at 88% 78%, rgba(190, 18, 60, 0.14), rgba(190, 18, 60, 0) 30%),
+          #f6f7f2;
+      }
+
+      .grain {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.26;
+        background-image:
+          linear-gradient(rgba(17, 19, 24, 0.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(17, 19, 24, 0.035) 1px, transparent 1px);
+        background-size: 42px 42px;
+      }
+
+      .ghost {
+        position: absolute;
+        right: -40px;
+        bottom: -72px;
+        width: 520px;
+        height: 520px;
+        border: 38px solid rgba(15, 118, 110, 0.11);
+        border-radius: 50%;
+        box-shadow:
+          -120px -60px 0 rgba(190, 18, 60, 0.08),
+          -250px 120px 0 rgba(180, 83, 9, 0.09);
+        pointer-events: none;
+      }
+
+      .ghost span {
+        display: none;
+      }
+
+      .scene {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        grid-template-columns: 0.94fr 1.06fr;
+        gap: 72px;
+        padding: 92px 110px;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .scene.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .stack {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 28px;
+        min-width: 0;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        width: max-content;
+        align-items: center;
+        gap: 14px;
+        border: 2px solid #0f766e;
+        background: #ffffff;
+        color: #0f766e;
+        padding: 12px 18px;
+        font-family: monospace;
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2 {
+        font-family: serif;
+        font-weight: 700;
+        letter-spacing: 0;
+        line-height: 0.95;
+      }
+
+      h1 {
+        max-width: 760px;
+        font-size: 105px;
+      }
+
+      h2 {
+        max-width: 760px;
+        font-size: 82px;
+      }
+
+      .lede {
+        max-width: 680px;
+        color: #4b5563;
+        font-size: 34px;
+        line-height: 1.22;
+      }
+
+      .terminal {
+        align-self: center;
+        width: 810px;
+        border: 3px solid #111318;
+        background: #ffffff;
+        box-shadow: 28px 30px 0 #d8ded6;
+      }
+
+      .terminal-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px solid #d8ded6;
+        padding: 20px 24px;
+        color: #111318;
+        font-family: monospace;
+        font-size: 22px;
+      }
+
+      .dots {
+        display: flex;
+        gap: 10px;
+      }
+
+      .dots span {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: #be123c;
+      }
+
+      .dots span:nth-child(2) {
+        background: #b45309;
+      }
+
+      .dots span:nth-child(3) {
+        background: #0f766e;
+      }
+
+      .terminal pre {
+        min-height: 408px;
+        padding: 34px;
+        color: #111318;
+        font-family: monospace;
+        font-size: 31px;
+        line-height: 1.48;
+        white-space: pre-wrap;
+      }
+
+      .cmd {
+        color: #0f766e;
+      }
+
+      .ok {
+        color: #111318;
+      }
+
+      .risk {
+        color: #ff7a9a;
+      }
+
+      .report-card {
+        position: relative;
+        align-self: center;
+        width: 875px;
+        min-height: 690px;
+        border: 3px solid #111318;
+        background: #ffffff;
+        box-shadow: 26px 26px 0 #0f766e;
+        padding: 32px;
+        overflow: hidden;
+      }
+
+      .report-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 26px;
+        font-family: monospace;
+        font-size: 22px;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+
+      .tab {
+        border: 2px solid #d8ded6;
+        padding: 12px 18px;
+        color: #4b5563;
+        font-size: 21px;
+        font-weight: 800;
+      }
+
+      .tab.hot {
+        border-color: #0f766e;
+        background: #d9f2ee;
+        color: #0f766e;
+      }
+
+      .matrix {
+        display: grid;
+        grid-template-columns: repeat(8, 54px);
+        gap: 8px;
+        align-items: center;
+      }
+
+      .cell {
+        width: 54px;
+        height: 54px;
+        border: 2px solid #ffffff;
+        background: #edf3ef;
+      }
+
+      .cell.low {
+        background: #bee3d9;
+      }
+
+      .cell.mid {
+        background: #f5c66b;
+      }
+
+      .cell.high {
+        background: #be123c;
+      }
+
+      .callout {
+        position: absolute;
+        right: 32px;
+        bottom: 32px;
+        width: 330px;
+        border: 3px solid #be123c;
+        background: #fff6f8;
+        padding: 22px;
+        color: #111318;
+      }
+
+      .callout strong {
+        display: block;
+        margin-bottom: 10px;
+        color: #be123c;
+        font-family: serif;
+        font-size: 44px;
+        line-height: 0.96;
+      }
+
+      .callout span {
+        color: #4b5563;
+        font-size: 24px;
+        line-height: 1.18;
+      }
+
+      .file-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+        align-self: center;
+      }
+
+      .pair {
+        display: grid;
+        grid-template-columns: 1.1fr 80px 1.1fr;
+        align-items: center;
+        gap: 18px;
+      }
+
+      .file {
+        border: 2px solid #111318;
+        background: #ffffff;
+        padding: 20px 22px;
+        font-family: monospace;
+        font-size: 26px;
+        box-shadow: 10px 10px 0 #d8ded6;
+      }
+
+      .score {
+        width: 80px;
+        height: 80px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: #111318;
+        color: #f6f7f2;
+        font-family: monospace;
+        font-size: 25px;
+        font-weight: 800;
+      }
+
+      .pair.high .score {
+        background: #be123c;
+      }
+
+      .pair.medium .score {
+        background: #b45309;
+      }
+
+      .pair.low .score {
+        background: #0f766e;
+      }
+
+      .outputs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+        align-self: center;
+      }
+
+      .output {
+        min-height: 360px;
+        border: 3px solid #111318;
+        background: #ffffff;
+        padding: 34px;
+        box-shadow: 18px 18px 0 #d8ded6;
+      }
+
+      .output .type {
+        margin-bottom: 32px;
+        color: #0f766e;
+        font-family: monospace;
+        font-size: 24px;
+        font-weight: 800;
+      }
+
+      .output .name {
+        font-family: serif;
+        font-size: 62px;
+        line-height: 0.95;
+      }
+
+      .output p {
+        margin-top: 24px;
+        color: #4b5563;
+        font-size: 26px;
+        line-height: 1.2;
+      }
+
+      .cta {
+        display: grid;
+        grid-template-columns: 1fr;
+        align-content: center;
+        padding: 116px 140px;
+      }
+
+      .cta-panel {
+        border: 4px solid #111318;
+        background: #ffffff;
+        padding: 66px;
+        box-shadow: 34px 34px 0 #be123c;
+      }
+
+      .install {
+        display: inline-block;
+        margin-top: 38px;
+        background: #111318;
+        color: #f6f7f2;
+        padding: 24px 30px;
+        font-family: monospace;
+        font-size: 33px;
+      }
+
+      .stripe {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        height: 18px;
+        background: linear-gradient(90deg, #0f766e 0 33%, #be123c 33% 66%, #b45309 66%);
+      }
+
+      .wipe {
+        position: absolute;
+        inset: 0;
+        z-index: 30;
+        pointer-events: none;
+        background: #111318;
+        transform: scaleX(0);
+        transform-origin: left center;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="12"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div class="grain" data-layout-ignore></div>
+      <div class="ghost" data-layout-ignore></div>
+
+      <section id="scene-1" class="scene active">
+        <div class="stack">
+          <div class="eyebrow">local git history to risk map</div>
+          <h1>Find files that keep changing together.</h1>
+          <p class="lede">
+            churnmap turns commit history into a visual coupling report before a refactor starts.
+          </p>
+        </div>
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <span>terminal</span>
+          </div>
+          <pre><span class="cmd">$ churnmap --repo . --open</span>
+Scanning git history
+Building co-change matrix
+<span class="ok">Wrote coupling-report/index.html</span>
+<span class="ok">Wrote coupling-report/report.json</span></pre>
+        </div>
+      </section>
+
+      <section id="scene-2" class="scene">
+        <div class="stack">
+          <div class="eyebrow">interactive D3 report</div>
+          <h2>Heatmap first. Graph second. JSON for everything else.</h2>
+          <p class="lede">
+            Product teams get the picture; automation gets the structured envelope.
+          </p>
+        </div>
+        <div class="report-card">
+          <div class="report-top"><strong>ChurnMap - payments-service</strong><span>max 0.91</span></div>
+          <div class="tabs"><div class="tab hot">Heatmap</div><div class="tab">Force Graph</div><div class="tab">Table</div></div>
+          <div class="matrix">
+            <div class="cell high"></div><div class="cell high"></div><div class="cell mid"></div><div class="cell low"></div><div class="cell"></div><div class="cell"></div><div class="cell low"></div><div class="cell"></div>
+            <div class="cell high"></div><div class="cell high"></div><div class="cell high"></div><div class="cell mid"></div><div class="cell low"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="cell mid"></div><div class="cell high"></div><div class="cell high"></div><div class="cell high"></div><div class="cell mid"></div><div class="cell"></div><div class="cell"></div><div class="cell low"></div>
+            <div class="cell low"></div><div class="cell mid"></div><div class="cell high"></div><div class="cell high"></div><div class="cell mid"></div><div class="cell low"></div><div class="cell"></div><div class="cell"></div>
+            <div class="cell"></div><div class="cell low"></div><div class="cell mid"></div><div class="cell mid"></div><div class="cell high"></div><div class="cell high"></div><div class="cell low"></div><div class="cell"></div>
+            <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell low"></div><div class="cell high"></div><div class="cell high"></div><div class="cell mid"></div><div class="cell"></div>
+            <div class="cell low"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell low"></div><div class="cell mid"></div><div class="cell high"></div><div class="cell mid"></div>
+            <div class="cell"></div><div class="cell"></div><div class="cell low"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell mid"></div><div class="cell high"></div>
+          </div>
+          <div class="callout"><strong>0.91 risk</strong><span>checkout.py and invoice.py changed together 38 times.</span></div>
+        </div>
+      </section>
+
+      <section id="scene-3" class="scene">
+        <div class="stack">
+          <div class="eyebrow">refactor planning signal</div>
+          <h2>Stop guessing where the blast radius lives.</h2>
+          <p class="lede">
+            The report makes hidden ownership, risky seams, and repeat co-change paths visible.
+          </p>
+        </div>
+        <div class="file-grid">
+          <div class="pair high"><div class="file">src/checkout.py</div><div class="score">.91</div><div class="file">src/invoice.py</div></div>
+          <div class="pair high"><div class="file">src/payment.py</div><div class="score">.84</div><div class="file">src/refunds.py</div></div>
+          <div class="pair medium"><div class="file">src/cart.py</div><div class="score">.63</div><div class="file">src/tax.py</div></div>
+          <div class="pair low"><div class="file">src/export.py</div><div class="score">.24</div><div class="file">src/reporting.py</div></div>
+        </div>
+      </section>
+
+      <section id="scene-4" class="scene cta">
+        <div class="cta-panel">
+          <div class="eyebrow">open-source CLI</div>
+          <h1>Run the map before the rewrite.</h1>
+          <p class="lede">No service. No token. No dashboard dependency. Just a static HTML report and JSON from your repo.</p>
+          <div class="install">pip install churnmap</div>
+        </div>
+      </section>
+      <div class="stripe"></div>
+      <div class="wipe"></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const sceneIds = ["#scene-1", "#scene-2", "#scene-3", "#scene-4"];
+
+      function showScene(index, time) {
+        sceneIds.forEach((selector, itemIndex) => {
+          tl.set(selector, {
+            opacity: itemIndex === index ? 1 : 0,
+            visibility: itemIndex === index ? "visible" : "hidden",
+          }, time);
+        });
+      }
+
+      function wipeTo(index, time) {
+        tl.set(".wipe", { scaleX: 0, transformOrigin: "left center" }, time);
+        tl.to(".wipe", { scaleX: 1, duration: 0.32, ease: "power3.in", overwrite: "auto" }, time);
+        showScene(index, time + 0.34);
+        tl.set(".wipe", { transformOrigin: "right center" }, time + 0.36);
+        tl.to(".wipe", { scaleX: 0, duration: 0.52, ease: "expo.out", overwrite: "auto" }, time + 0.36);
+      }
+
+      showScene(0, 0);
+      tl.fromTo("#scene-1 .eyebrow", { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.42, ease: "expo.out" }, 0.18);
+      tl.fromTo("#scene-1 h1", { y: 58, opacity: 0 }, { y: 0, opacity: 1, duration: 0.72, ease: "power4.out" }, 0.32);
+      tl.fromTo("#scene-1 .lede", { y: 34, opacity: 0 }, { y: 0, opacity: 1, duration: 0.48, ease: "sine.out" }, 0.7);
+      tl.fromTo("#scene-1 .terminal", { x: 88, rotation: 1.5, opacity: 0 }, { x: 0, rotation: 0, opacity: 1, duration: 0.64, ease: "back.out(1.3)" }, 0.46);
+      tl.fromTo("#scene-1 pre", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power1.out" }, 0.95);
+      tl.to(".ghost", { x: -28, y: -16, duration: 11.6, ease: "none" }, 0);
+
+      wipeTo(1, 3.0);
+      tl.fromTo("#scene-2 .eyebrow", { y: -38, opacity: 0 }, { y: 0, opacity: 1, duration: 0.38, ease: "power3.out" }, 3.68);
+      tl.fromTo("#scene-2 h2", { x: -62, opacity: 0 }, { x: 0, opacity: 1, duration: 0.64, ease: "expo.out" }, 3.78);
+      tl.fromTo("#scene-2 .lede", { y: 34, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "sine.out" }, 4.12);
+      tl.fromTo("#scene-2 .report-card", { scale: 0.92, rotation: -1.8, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.7, ease: "back.out(1.25)" }, 3.78);
+      tl.fromTo("#scene-2 .cell", { scale: 0.2, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.42, stagger: 0.012, ease: "power4.out" }, 4.28);
+      tl.fromTo("#scene-2 .callout", { x: 60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.42, ease: "power2.out" }, 4.95);
+
+      wipeTo(2, 6.1);
+      tl.fromTo("#scene-3 .eyebrow", { x: -52, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, ease: "power4.out" }, 6.78);
+      tl.fromTo("#scene-3 h2", { y: 48, opacity: 0 }, { y: 0, opacity: 1, duration: 0.64, ease: "expo.out" }, 6.9);
+      tl.fromTo("#scene-3 .lede", { y: 34, opacity: 0 }, { y: 0, opacity: 1, duration: 0.42, ease: "sine.out" }, 7.22);
+      tl.fromTo("#scene-3 .pair", { x: 90, opacity: 0 }, { x: 0, opacity: 1, duration: 0.48, stagger: 0.13, ease: "back.out(1.18)" }, 6.92);
+      tl.fromTo("#scene-3 .score", { scale: 0.35, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.38, stagger: 0.13, ease: "elastic.out(1, 0.72)" }, 7.08);
+
+      wipeTo(3, 9.0);
+      tl.fromTo("#scene-4 .cta-panel", { y: 70, opacity: 0 }, { y: 0, opacity: 1, duration: 0.66, ease: "power4.out" }, 9.62);
+      tl.fromTo("#scene-4 .eyebrow", { y: -28, opacity: 0 }, { y: 0, opacity: 1, duration: 0.32, ease: "power2.out" }, 9.78);
+      tl.fromTo("#scene-4 h1", { x: -44, opacity: 0 }, { x: 0, opacity: 1, duration: 0.56, ease: "expo.out" }, 9.88);
+      tl.fromTo("#scene-4 .lede", { y: 32, opacity: 0 }, { y: 0, opacity: 1, duration: 0.44, ease: "sine.out" }, 10.18);
+      tl.fromTo("#scene-4 .install", { scale: 0.86, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.38, ease: "back.out(1.35)" }, 10.5);
+      tl.to("#scene-4", { opacity: 0, duration: 0.45, ease: "power2.in" }, 11.5);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
