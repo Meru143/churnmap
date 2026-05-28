@@ -1,14 +1,25 @@
 [project]
 name = "churnmap"
 version = "1.0.0"
-description = "Coupling heatmap generator — visualize co-change risk in any git repo"
+description = "Find hidden file coupling before refactors with git-history heatmaps and JSON reports"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.11"
 authors = [
     { name = "Meru143" },
 ]
-keywords = ["coupling", "git", "code-quality", "heatmap", "visualization", "d3"]
+keywords = [
+    "refactoring",
+    "technical-debt",
+    "change-coupling",
+    "git-history",
+    "code-quality",
+    "software-architecture",
+    "static-analysis",
+    "heatmap",
+    "visualization",
+    "d3",
+]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",

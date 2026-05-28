@@ -2,7 +2,13 @@
 
 ## One-liner
 
-churnmap is a local CLI that turns git co-change history into an interactive coupling heatmap, force graph, and JSON report.
+churnmap shows which files secretly change together before your refactor breaks them.
+
+## GitHub metadata
+
+**Description:** See which files secretly change together before your refactor breaks them. Local git-history heatmaps, force graphs, and JSON.
+
+**Topics:** `refactoring`, `technical-debt`, `software-architecture`, `code-quality`, `git-history`, `coupling`, `change-coupling`, `codescene`, `static-analysis`, `architecture`, `dependency-analysis`, `d3`, `heatmap`, `visualization`, `cli`, `python`, `devtools`, `maintainability`, `developer-tools`, `json-report`
 
 ## Primary audience
 
@@ -27,7 +33,7 @@ Before you rewrite, split, or migrate a system, find the files that already beha
 
 ### Homepage hero
 
-**Headline:** Run the coupling map before the rewrite.
+**Headline:** See which files secretly change together.
 
 **Subheadline:** churnmap analyzes git co-change history and generates an interactive D3 heatmap, force graph, and JSON report from any local repository.
 

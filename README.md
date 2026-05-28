@@ -4,13 +4,24 @@
 
 # churnmap
 
-> Run the coupling map before the rewrite.
+> See which files secretly change together before your refactor breaks them.
 
-churnmap is a local CLI that analyzes git co-change history and generates an interactive D3 report plus a machine-readable JSON file. Use it before refactors, migrations, ownership reviews, and architecture audits to find files that keep changing together.
+churnmap is an open-source change-coupling analyzer for git repositories. It turns commit history into an interactive D3 heatmap, force graph, and JSON report so maintainers can scope refactors, migrations, and architecture reviews from evidence instead of folklore.
 
 ![churnmap product demo](docs/assets/churnmap-demo.gif)
 
 One command, two durable artifacts. No signup, token, repository upload, hosted dashboard, or Kubernetes.
+
+## What Is churnmap?
+
+churnmap is a local git history analysis tool for finding change coupling: files that repeatedly appear in the same commits. It helps developers spot technical debt, refactoring risk, hidden ownership boundaries, and legacy-code hotspots before they start moving code.
+
+## Why Developers Star It
+
+- Finds hidden file coupling before a rewrite turns into a month-long chase.
+- Gives refactor planning a visual artifact people can argue with.
+- Produces static HTML and JSON, so the evidence survives after the meeting.
+- Keeps source code and git history local.
 
 ## Install
 
@@ -60,9 +71,10 @@ coupling-report/
 
 ## When To Use It
 
+- When a refactor feels risky but nobody can name the blast radius.
 - Before splitting a module, package, service, or bounded context.
 - Before a rewrite, migration, or large dependency upgrade.
-- During architecture reviews where code ownership is unclear.
+- When architecture diagrams disagree with commit history.
 - When onboarding engineers need to see the real change paths, not just the folder tree.
 - When you want CodeScene-style coupling signal without sending code or git history to a service.
 
