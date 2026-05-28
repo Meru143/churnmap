@@ -1,21 +1,14 @@
-# Changelog
+# CHANGELOG
 
-All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## v0.0.1 (2026-05-28)
 
-## [Unreleased]
+### Bug Fixes
 
-### Added
-- Initial release of churnmap CLI.
-- `coupling-core`-backed git co-change analysis.
-- Two-tab D3 interactive HTML report (Heatmap, Force Graph, Table).
-- JSON envelope output (`meta` + `pairs`).
-- `.churnmap.yml` config file support with CLI override priority.
-- `--open` flag to launch the report in the default browser.
-- `rich` progress bar with non-TTY suppression.
+- Align semantic-release configuration
+  ([`ce6fc61`](https://github.com/Meru143/churnmap/commit/ce6fc6105fba9dc0e7cfc31281040331f96afc47))
 
-## [1.0.0] - 2026-05-28
+### Chores
 
-- First public release.
+- V1.0.0 complete — all phases done
+  ([`2165e58`](https://github.com/Meru143/churnmap/commit/2165e587679da377fbcbf1b8fb128437554b4566))
