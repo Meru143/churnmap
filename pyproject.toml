@@ -35,7 +35,7 @@ classifiers = [
 ]
 dependencies = [
     "coupling-core>=1.0,<2.0",
-    "typer>=0.26.0",
+    "typer>=0.27.3",
     "rich>=15.0.0",
     "Jinja2>=3.1.6",
     "PyYAML>=6.0.2",
